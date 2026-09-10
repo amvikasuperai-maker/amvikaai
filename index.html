@@ -64,7 +64,7 @@
 
     <script>
         let userFP = "";
-        let adminEmail = "youradmin@gmail.com"; // AAPKA ADMIN EMAIL (No Restrictions)
+        let adminEmail = "amvikasuperai@gmail.com"; // AAPKA ADMIN EMAIL (No Restrictions)
 
         // 1. Hardware Fingerprinting (1-Device Lock)
         FingerprintJS.load().then(fp => fp.get()).then(result => {
@@ -87,7 +87,7 @@
             }
 
             // Standard User Verification (API Call to Google Sheets)
-            fetch(`YOUR_GOOGLE_SCRIPT_WEBAPP_URL?email=${email}&key=${key}&fp=${userFP}`)
+            fetch(`https://script.google.com/macros/s/AKfycbzjYDKuvnkNdyAkNBb48zyZkG8hFlnyU8yK8aNsdOdgmtHsTHrGc_PZZxtXQNoYBlBx/exec?email=${email}&key=${key}&fp=${userFP}`)
             .then(res => res.json())
             .then(data => {
                 if(data.status === "SUCCESS") {
