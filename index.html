@@ -64,43 +64,52 @@
 
     <script>
         let userFP = "";
-        let adminEmail = "amvikasuperai@gmail.com"; // AAPKA ADMIN EMAIL (No Restrictions)
-
+        let adminEmail = "careerdekhopl@gmail.com"; // AAPKA ADMIN EMAIL
+let adminPassword = "Mysuperpasscode@1"; // AAPKA ADMIN PASSWORD
         // 1. Hardware Fingerprinting (1-Device Lock)
         FingerprintJS.load().then(fp => fp.get()).then(result => {
             userFP = result.visitorId;
         });
 
-        // 2. Authentication Logic
-        function authenticateUser() {
-            const email = document.getElementById('userEmail').value;
-            const key = document.getElementById('licenseKey').value;
-            const role = document.getElementById('userRole').value;
+        // 2. Authentication Logic (With Admin Password Check)
+function authenticateUser() {
+    const email = document.getElementById('userEmail').value.trim();
+    const key = document.getElementById('licenseKey').value.trim(); // Key box me Admin Password padega
+    const role = document.getElementById('userRole').value;
 
-            // Admin Override Check
-            if (email === adminEmail) {
-                alert("Admin Access Granted! Device & Role Restrictions Disabled.");
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('activeRoleTag').innerText = "Role: MASTER ADMIN (ALL ROLES ACTIVE)";
-                startWakeWordEngine();
-                return;
-            }
-
-            // Standard User Verification (API Call to Google Sheets)
-            fetch(`https://script.google.com/macros/s/AKfycbzjYDKuvnkNdyAkNBb48zyZkG8hFlnyU8yK8aNsdOdgmtHsTHrGc_PZZxtXQNoYBlBx/exec?email=${email}&key=${key}&fp=${userFP}`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === "SUCCESS") {
-                    document.getElementById('loginModal').classList.add('hidden');
-                    document.getElementById('activeRoleTag').innerText = `Role: ${role.toUpperCase()}`;
-                    startWakeWordEngine();
-                } else {
-                    document.getElementById('authError').innerText = data.message;
-                    document.getElementById('authError').classList.remove('hidden');
-                }
-            });
+    // ADMIN LOGIN CHECK (Email + Admin Password Match)
+    if (email === adminEmail) {
+        if (key === adminPassword) {
+            alert("Admin Access Granted! Device Lock & Role Restrictions Disabled.");
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('activeRoleTag').innerText = "Role: MASTER ADMIN (ALL ROLES ACTIVE)";
+            startWakeWordEngine();
+            return;
+        } else {
+            document.getElementById('authError').innerText = "Incorrect Admin Password!";
+            document.getElementById('authError').classList.remove('hidden');
+            return;
         }
+    }
 
+    // STANDARD PAID USER VERIFICATION
+    fetch(`YOUR_GOOGLE_SCRIPT_WEBAPP_URL?email=${email}&key=${key}&fp=${userFP}`)
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "SUCCESS") {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('activeRoleTag').innerText = `Role: ${role.toUpperCase()}`;
+            startWakeWordEngine();
+        } else {
+            document.getElementById('authError').innerText = data.message;
+            document.getElementById('authError').classList.remove('hidden');
+        }
+    })
+    .catch(err => {
+        document.getElementById('authError').innerText = "Network / API Error. Check WebApp URL.";
+        document.getElementById('authError').classList.remove('hidden');
+    });
+}
         // 3. Custom Wake-Word Engine ("Hey Amvika")
         function startWakeWordEngine() {
             if ('webkitSpeechRecognition' in window) {
