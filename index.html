@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMVIKA SUPER AI</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://openfpcdn.io/fingerprintjs/v3/esm.min.js"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- Header & Branding -->
+    <header class="p-4 bg-slate-800 border-b border-emerald-500/30 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="amvika-logo.jpg" class="w-10 h-10 rounded-full border border-emerald-400">
+            <div>
+                <h1 class="text-xl font-bold tracking-wider text-emerald-400">AMVIKA SUPER AI</h1>
+                <p class="text-xs text-gray-400">POWERED BY CAREER DEKHO PRIVATE LIMITED</p>
+            </div>
+        </div>
+        <img src="logo.png" class="h-8">
+    </header>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black/80 flex justify-center items-center p-4">
+        <div class="bg-slate-800 p-6 rounded-xl max-w-md w-full border border-emerald-500/50">
+            <h2 class="text-lg font-bold text-emerald-400 mb-4">AMVIKA AI - Activation Login</h2>
+            <input type="email" id="userEmail" placeholder="Enter Gmail Address" class="w-full p-2 mb-3 bg-slate-700 rounded border border-gray-600 text-white">
+            <input type="text" id="licenseKey" placeholder="Enter Unique License Code" class="w-full p-2 mb-3 bg-slate-700 rounded border border-gray-600 text-white">
+            
+            <label class="text-xs text-gray-400 mb-1 block">Select Role (Locked for General Users):</label>
+            <select id="userRole" class="w-full p-2 mb-4 bg-slate-700 rounded border border-gray-600 text-white">
+                <option value="student">Student / Academic</option>
+                <option value="job">Job / Employee / Executive</option>
+                <option value="business">Business Owner / SMB / Enterprise</option>
+            </select>
+            
+            <button onclick="authenticateUser()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold">Activate AMVIKA</button>
+            <p id="authError" class="text-red-400 text-xs mt-2 hidden"></p>
+        </div>
+    </div>
+
+    <!-- Main Workspace UI -->
+    <main class="p-4 max-w-3xl mx-auto w-full flex-grow flex flex-col">
+        <div class="flex justify-between items-center mb-2">
+            <span id="activeRoleTag" class="text-xs bg-emerald-900 text-emerald-300 px-2 py-1 rounded">Role: Not Set</span>
+            <span id="wakeStatus" class="text-xs text-yellow-400">Wake Word: Listening for "Hey Amvika"...</span>
+        </div>
+
+        <!-- Chat History Log -->
+        <div id="chatLog" class="flex-grow bg-slate-800/50 p-4 rounded-xl border border-gray-700 overflow-y-auto max-h-[60vh] space-y-4">
+            <div class="p-3 bg-emerald-900/30 border border-emerald-500/30 rounded-lg text-sm">
+                <b>AMVIKA:</b> Namaste! Main AMVIKA AI hoon. Aapka personal assistant. Aap mujhse bolkar ya type karke sawaal pooch sakte hain.
+            </div>
+        </div>
+
+        <!-- Inputs & Action Controls -->
+        <div class="mt-4 flex gap-2">
+            <input type="text" id="userInput" placeholder="Kuch poochiye ya 'Lights OFF' boliye..." class="flex-grow p-3 bg-slate-800 border border-gray-600 rounded-lg text-white">
+            <button onclick="processAIQuery()" class="px-5 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-lg">Send</button>
+        </div>
+    </main>
+
+    <script>
+        let userFP = "";
+        let adminEmail = "youradmin@gmail.com"; // AAPKA ADMIN EMAIL (No Restrictions)
+
+        // 1. Hardware Fingerprinting (1-Device Lock)
+        FingerprintJS.load().then(fp => fp.get()).then(result => {
+            userFP = result.visitorId;
+        });
+
+        // 2. Authentication Logic
+        function authenticateUser() {
+            const email = document.getElementById('userEmail').value;
+            const key = document.getElementById('licenseKey').value;
+            const role = document.getElementById('userRole').value;
+
+            // Admin Override Check
+            if (email === adminEmail) {
+                alert("Admin Access Granted! Device & Role Restrictions Disabled.");
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('activeRoleTag').innerText = "Role: MASTER ADMIN (ALL ROLES ACTIVE)";
+                startWakeWordEngine();
+                return;
+            }
+
+            // Standard User Verification (API Call to Google Sheets)
+            fetch(`YOUR_GOOGLE_SCRIPT_WEBAPP_URL?email=${email}&key=${key}&fp=${userFP}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "SUCCESS") {
+                    document.getElementById('loginModal').classList.add('hidden');
+                    document.getElementById('activeRoleTag').innerText = `Role: ${role.toUpperCase()}`;
+                    startWakeWordEngine();
+                } else {
+                    document.getElementById('authError').innerText = data.message;
+                    document.getElementById('authError').classList.remove('hidden');
+                }
+            });
+        }
+
+        // 3. Custom Wake-Word Engine ("Hey Amvika")
+        function startWakeWordEngine() {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = "hi-IN";
+
+                recognition.onresult = (event) => {
+                    const transcript = Array.from(event.results).map(r => r[0].transcript).join('').toLowerCase();
+                    if (transcript.includes("hey amvika") || transcript.includes("amvika")) {
+                        document.getElementById('wakeStatus').innerText = "Wake Word Detected! Listening to command...";
+                        // Auto Trigger Query
+                    }
+                };
+                recognition.start();
+            }
+        }
+
+        // 4. Voice Response (Indian Female Accent)
+        function speakResponse(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'hi-IN';
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = voices.find(v => v.lang.includes('IN') && (v.name.includes('Female') || v.name.includes('Google')));
+            if (femaleVoice) utterance.voice = femaleVoice;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 5. Query Processing & IoT Local WiFi Trigger
+        function processAIQuery() {
+            const query = document.getElementById('userInput').value;
+            if(!query) return;
+
+            // Render User Message in UI Log
+            const chatLog = document.getElementById('chatLog');
+            chatLog.innerHTML += `<div class="p-3 bg-slate-700 rounded-lg text-sm text-right"><b>You:</b> ${query}</div>`;
+
+            // IoT Command Check (Same WiFi Device Control)
+            if (query.toLowerCase().includes("light off") || query.toLowerCase().includes("light band")) {
+                fetch('http://192.168.1.50/cm?cmnd=Power%20OFF') // Local IoT IP Call
+                .catch(e => console.log("IoT execution attempted"));
+            }
+
+            // Dummy AI Response Trigger
+            const aiReply = "Ji bilkul, maine aapka ye task complete kar diya hai aur history update kar di hai.";
+            chatLog.innerHTML += `<div class="p-3 bg-emerald-900/30 border border-emerald-500/30 rounded-lg text-sm"><b>AMVIKA:</b> ${aiReply}</div>`;
+            
+            speakResponse(aiReply);
+            document.getElementById('userInput').value = "";
+        }
+    </script>
+</body>
+</html>
